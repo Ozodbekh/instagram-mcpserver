@@ -1,0 +1,77 @@
+from pathlib import Path
+
+from root.conf import env
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = env.SECRET_KEY.get_secret_value()
+
+DEBUG = env.DEBUG
+
+ALLOWED_HOSTS = env.allowed_hosts
+
+INSTALLED_APPS = [
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+
+    'rest_framework',
+    'drf_spectacular',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+]
+
+ROOT_URLCONF = 'root.urls'
+
+ASGI_APPLICATION = 'root.asgi.application'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [],
+        },
+    },
+]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env.POSTGRES_DB,
+        'USER': env.POSTGRES_USER,
+        'PASSWORD': env.POSTGRES_PASSWORD.get_secret_value(),
+        'HOST': env.POSTGRES_HOST,
+        'PORT': env.POSTGRES_PORT,
+        'CONN_MAX_AGE': 0,
+        'OPTIONS': {'pool': True},
+    }
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = False
+
+USE_TZ = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'UNAUTHENTICATED_USER': None,
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Instagram MCP Server API',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'CDN',
+}
