@@ -63,6 +63,11 @@ No `conftest.py` yet. It arrives with the first fixture two files share.
   our own dict — so the test proves the override actually reached DRF. It names
   `BasicAuthentication` explicitly, because that is the one DRF enables by default and the one
   that would accept a password on every view.
+- **CORS, including a real preflight.** `test_cors.py` sends an `OPTIONS` with `Origin` and
+  `Access-Control-Request-Method` and reads the response headers, because the settings assertions
+  alone would not catch a middleware in the wrong position. It pins `authorization` beside the `*`
+  in `CORS_ALLOW_HEADERS`: the Fetch specification excludes `Authorization` from the wildcard, and
+  that failure appears only in a browser — no test client would ever reproduce it.
 - **The schema and Swagger UI exist only under `DEBUG`.** `test_urls.py` reloads the URL conf under
   each flag and compares the routed patterns, then drives the real client through both. A
   permission cannot express this — `drf-spectacular` serves those views with its own `AllowAny` —

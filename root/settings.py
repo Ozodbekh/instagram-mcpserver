@@ -14,11 +14,13 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
 
+    'corsheaders',
     'rest_framework',
     'drf_spectacular',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 ]
 
@@ -57,6 +59,14 @@ TIME_ZONE = 'UTC'
 USE_I18N = False
 
 USE_TZ = True
+
+CORS_URLS_REGEX = r'^/api/.*$'
+
+CORS_ALLOWED_ORIGINS = env.cors_allowed_origins
+
+CORS_ALLOW_CREDENTIALS = False
+
+CORS_ALLOW_HEADERS = ['*', 'authorization']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],

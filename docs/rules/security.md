@@ -77,6 +77,27 @@ comparison.
 - Disconnecting revokes at Meta and deletes our copy of the token in the same change. A row marked
   disconnected while the token still works is a token nobody is watching.
 
+## CORS
+
+CORS is what a browser enforces on behalf of the user, and it is configured in `root/settings.py`
+through `django-cors-headers`. Four rules, and each one is a mistake somebody has shipped:
+
+- **Origins are configuration, never `*`.** `CORS_ALLOWED_ORIGINS` comes from `.env`; an empty key
+  means no cross-origin access rather than an open one. `CORS_ALLOW_ALL_ORIGINS` is not set, and
+  turning it on is a decision with a reason written beside it.
+- **`Authorization` is listed explicitly, next to the wildcard.** `CORS_ALLOW_HEADERS` is
+  `['*', 'authorization']`. The Fetch specification excludes `Authorization` from what `*` covers,
+  so a wildcard alone means every preflight carrying a bearer token fails — and it fails only in a
+  browser, which is why it survives every test written with a client that is not one.
+- **Credentials stay off while authentication is a bearer header.** `CORS_ALLOW_CREDENTIALS = True`
+  makes a browser reject `*` for both the origin and the header list, and it is only needed for
+  cookies. Turning it on means naming every origin and every header, in the same change.
+- **CORS is scoped to the API.** `CORS_URLS_REGEX` keeps the headers off everything else, so a path
+  added later is not cross-origin readable by default.
+
+CORS is not authorization. It stops a *browser* on another origin from reading a response; it stops
+nothing else, and `curl` never sees it. A permission check is still the thing that protects data.
+
 ## Personal data
 
 - Never log account handles, follower lists, direct message contents, comment bodies or the

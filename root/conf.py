@@ -17,9 +17,19 @@ class Env(BaseSettings):
     POSTGRES_HOST: str = 'localhost'
     POSTGRES_PORT: int = 5432
 
+    CORS_ALLOWED_ORIGINS: str = ''
+
     @property
     def allowed_hosts(self):
-        return [host.strip() for host in self.ALLOWED_HOSTS.split(',') if host.strip()]
+        return self._split(self.ALLOWED_HOSTS)
+
+    @property
+    def cors_allowed_origins(self):
+        return self._split(self.CORS_ALLOWED_ORIGINS)
+
+    @staticmethod
+    def _split(raw):
+        return [entry.strip() for entry in raw.split(',') if entry.strip()]
 
 
 env = Env()

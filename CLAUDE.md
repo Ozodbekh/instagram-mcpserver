@@ -13,8 +13,8 @@ business account and posts in their name. `docs/rules/security.md` is not advice
 
 ## Stack
 
-Python 3.14 · Django 6.1 · DRF · `drf-spectacular` · PostgreSQL (`psycopg`, pooled) ·
-`pydantic-settings` · `uv` · `pytest` + `pytest-django`.
+Python 3.14 · Django 6.1 · DRF · `drf-spectacular` · `django-cors-headers` ·
+PostgreSQL (`psycopg`, pooled) · `pydantic-settings` · `uv` · `pytest` + `pytest-django`.
 
 Not installed — do not import them: Celery, Redis, Channels, GraphQL, `django-filter`,
 `celery-beat`, ruff. `fastmcp` and an HTTP client arrive with the MCP server and the Graph API

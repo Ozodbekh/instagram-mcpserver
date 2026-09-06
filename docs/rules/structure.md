@@ -142,6 +142,7 @@ instagram-mcpserver/
     └── root/
         ├── __init__.py         package marker
         ├── test_conf.py        the secret refuses to be empty, short, defaulted or printed
+        ├── test_cors.py        the allowed origins, the Authorization wildcard, a real preflight
         ├── test_settings.py    what must stay out of INSTALLED_APPS, and that DRF fails closed
         └── test_urls.py        the schema and Swagger UI are routed under DEBUG and nowhere else
 └── uv.lock                     the resolved versions; the only thing that pins one

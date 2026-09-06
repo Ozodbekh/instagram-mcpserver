@@ -58,9 +58,19 @@ emptiness check before it is compared.
 
 ## Current state
 
-- `INSTALLED_APPS`: Django's `auth` and `contenttypes`, then `rest_framework` and
+- `INSTALLED_APPS`: Django's `auth` and `contenttypes`, then `corsheaders`, `rest_framework` and
   `drf_spectacular`. No app under `src/` exists yet.
-- `MIDDLEWARE` holds `SecurityMiddleware` alone.
+- `MIDDLEWARE` holds `CorsMiddleware` and then `SecurityMiddleware`. **CORS is first on purpose**:
+  it has to reach a response that another middleware generated and returned early — a
+  `SECURE_SSL_REDIRECT`, a `400` from host validation — or the browser reports a CORS failure
+  instead of the real one.
+- **CORS.** `CORS_ALLOWED_ORIGINS` comes from `.env`, so an empty key means no cross-origin access
+  at all rather than an accidental `*`. `CORS_URLS_REGEX` limits every CORS header to `/api/`.
+  `CORS_ALLOW_HEADERS` is `['*', 'authorization']` — the wildcard alone is not enough, because the
+  Fetch specification excludes `Authorization` from what `*` covers and a bearer token is exactly
+  what this API is about to send. `CORS_ALLOW_CREDENTIALS` stays `False`: authentication is a
+  bearer header rather than a cookie, and turning it on would void both wildcards at once. See
+  `docs/rules/security.md`.
 - PostgreSQL through `psycopg` 3, pooled, `CONN_MAX_AGE = 0` — the two are mutually exclusive, and
   the pool is the right half because the MCP server is a long-lived process with no request
   boundary at which Django would recycle a connection. See `docs/rules/django.md`.
