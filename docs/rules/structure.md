@@ -129,7 +129,7 @@ instagram-mcpserver/
 │   ├── asgi.py                 the ASGI entrypoint; there is no WSGI one
 │   ├── conf.py                 reads .env through pydantic-settings; only settings.py imports it
 │   ├── settings.py             JSON-only Django config, PostgreSQL, no admin, no static
-│   └── urls.py                 the generated schema and Swagger UI
+│   └── urls.py                 the generated schema and Swagger UI, routed only under DEBUG
 ├── scripts/
 │   ├── check-docs.sh           what `make check` runs last: the tree, the claims, the map
 │   ├── claude-hook.sh          Claude Code hooks — nudge on a stale CLAUDE.md, gate on a red check
@@ -142,7 +142,7 @@ instagram-mcpserver/
     └── root/
         ├── __init__.py         package marker
         ├── test_conf.py        the secret refuses to be empty, short, defaulted or printed
-        ├── test_settings.py    what must stay out of INSTALLED_APPS, MIDDLEWARE and TEMPLATES
-        └── test_urls.py        the schema and Swagger UI answer, and no path is slash-redirected
+        ├── test_settings.py    what must stay out of INSTALLED_APPS, and that DRF fails closed
+        └── test_urls.py        the schema and Swagger UI are routed under DEBUG and nowhere else
 └── uv.lock                     the resolved versions; the only thing that pins one
 ```

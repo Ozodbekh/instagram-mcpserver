@@ -47,6 +47,14 @@ comparison.
 
 - `permission_classes` is declared explicitly on every view, every action and every MCP tool.
   Never rely on a default.
+- **The default is nevertheless closed**, because a declaration can be forgotten and a default
+  cannot: `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated` and `DEFAULT_AUTHENTICATION_CLASSES` is
+  empty. DRF ships `AllowAny` plus `SessionAuthentication` and `BasicAuthentication`, so an
+  unconfigured project accepts an HTTP Basic password on every view. Both overrides are pinned by a
+  test — `api-drf.md` holds the table.
+- **The generated schema and Swagger UI are routed only under `DEBUG`.** The schema lists every
+  endpoint, field and error code this service has. A permission does not close them —
+  `drf-spectacular` serves them with its own `AllowAny` — so the route is what is gated.
 - **Object-level access is enforced in the selector, not the view.** A user must not read another
   user's account, media, insight or token by guessing an id.
 - Scope rules live once, in `src/common/scope.py`, and are used by REST and MCP alike. A field

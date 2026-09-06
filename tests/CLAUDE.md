@@ -58,8 +58,15 @@ No `conftest.py` yet. It arrives with the first fixture two files share.
 - **`TEMPLATES` stays empty of everything but `APP_DIRS`.** It exists for `drf-spectacular` and
   nothing else, and the test is what says so to whoever wants to add a `DIRS` entry.
 - **JSON is the only renderer and parser**, so DRF cannot render its browsable HTML page at all.
-- **The generated schema and Swagger UI answer.** Cheap, and it catches a settings change that
-  breaks the one surface a caller has today.
+- **DRF fails closed.** `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated` and
+  `DEFAULT_AUTHENTICATION_CLASSES` is empty, asserted against `api_settings` rather than against
+  our own dict — so the test proves the override actually reached DRF. It names
+  `BasicAuthentication` explicitly, because that is the one DRF enables by default and the one
+  that would accept a password on every view.
+- **The schema and Swagger UI exist only under `DEBUG`.** `test_urls.py` reloads the URL conf under
+  each flag and compares the routed patterns, then drives the real client through both. A
+  permission cannot express this — `drf-spectacular` serves those views with its own `AllowAny` —
+  so the routing is what is tested.
 
 ## Notes
 

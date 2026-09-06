@@ -67,13 +67,22 @@ emptiness check before it is compared.
   The pool runs on psycopg's own defaults (`'pool': True`) — nothing has measured it yet, and a
   size guessed now would be a number nobody could defend.
 - `USE_TZ = True`, `TIME_ZONE = 'UTC'`. Meta returns offsets; parse them, never reinterpret them.
-- `REST_FRAMEWORK`: JSON is the only renderer and the only parser — `BrowsableAPIRenderer` is not
-  registered, so DRF cannot render its HTML page at all. `UNAUTHENTICATED_USER` is `None` because
-  there is no `AuthenticationMiddleware`; when authentication lands, that line is revisited in the
-  same change.
+- `REST_FRAMEWORK` **overrides three DRF defaults that are open, and each override is the point**:
+  `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated`, so a view that forgets to declare one fails
+  closed rather than serving everybody; `DEFAULT_AUTHENTICATION_CLASSES` is **empty**, because
+  DRF's own default is `SessionAuthentication` + `BasicAuthentication` and the second would accept
+  HTTP Basic against Django's auth backends on every view — an authentication mechanism nobody
+  chose. JSON is the only renderer and the only parser, so `BrowsableAPIRenderer` cannot render its
+  HTML page at all. `UNAUTHENTICATED_USER` is `None` because there is no `AuthenticationMiddleware`.
+  The empty authentication list and that line are both revisited in the change that adds real
+  authentication — `security.md` still requires every view to declare its own permissions.
 - `SPECTACULAR_SETTINGS`: the schema is generated, never hand-written. `SERVE_INCLUDE_SCHEMA` is
   off so the schema endpoint does not describe itself.
-- `urls.py` routes `/api/schema/` and `/api/docs/`, and nothing else. No product path exists yet.
+- `urls.py` routes `/api/schema/` and `/api/docs/` **only when `DEBUG`**, and nothing else. No
+  product path exists yet, so with `DEBUG` off the URL conf is empty and every path is `404`.
+  The gate is on the route, not on a permission: `drf-spectacular` serves both views with
+  `AllowAny` (`SERVE_PERMISSIONS`) whatever the DRF default is, so not routing them is the only
+  thing that closes them.
 - `conf.py` carries `SECRET_KEY` (`SecretStr`, at least 32 characters), `DEBUG`, `ALLOWED_HOSTS`
   (comma-separated, read through the `allowed_hosts` property), and the five `POSTGRES_*` keys.
   `POSTGRES_PASSWORD` is a `SecretStr` with no default, so the key must be present even when the

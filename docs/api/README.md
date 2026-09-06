@@ -74,7 +74,9 @@ the page here first and then read it.
 | — | no product endpoint exists yet |
 
 `/api/schema/` and `/api/docs/` are the generated schema and Swagger UI. They are not product
-endpoints and have no page.
+endpoints and have no page, and **they are served only when `DEBUG` is on** — in any deployed
+environment both answer `404`. Read the schema from a development instance, or generate it with
+`manage.py spectacular`.
 
 ## Where to start
 
