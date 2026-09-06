@@ -1,8 +1,4 @@
-from pathlib import Path
-
 from root.conf import env
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env.SECRET_KEY.get_secret_value()
 

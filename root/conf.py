@@ -1,11 +1,15 @@
+from pathlib import Path
+
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY_MIN_LENGTH = 32
 
 
 class Env(BaseSettings):
-    model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+    model_config = SettingsConfigDict(env_file=BASE_DIR / '.env', extra='ignore')
 
     SECRET_KEY: SecretStr = Field(min_length=SECRET_KEY_MIN_LENGTH)
     DEBUG: bool = False

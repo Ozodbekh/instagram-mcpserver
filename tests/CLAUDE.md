@@ -47,6 +47,14 @@ patches `message_send` so **no test can reach the network even by mistake**.
 
 ## What is pinned here
 
+- **The ASGI entrypoint answers.** `test_asgi.py` drives `root.asgi:application` — the exact object
+  `uvicorn` imports — with hand-built ASGI messages rather than through a test client, because the
+  test client never touches that object. Its `receive()` never resolves after the body, which is
+  what a connected client looks like; resolving it with `http.disconnect` makes Django's disconnect
+  listener win the race and cancel the response before it is sent.
+- **`env_file` is an absolute path.** A relative `'.env'` resolves against the working directory,
+  so the process finds no configuration when it is started from anywhere else and fails with four
+  missing required keys instead of a missing file.
 - **`SECRET_KEY` refuses to be empty or short.** A required `SecretStr` alone is not enough:
   `SECRET_KEY=` in the environment satisfies "required" with an empty string. The length floor in
   `root/conf.py` is what makes it fail closed.

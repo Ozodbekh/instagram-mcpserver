@@ -6,12 +6,20 @@ Django configuration. No application code lives here.
 
 - `conf.py` — reads `.env` through `pydantic-settings` and exposes one `env` object.
 - `settings.py` — the only module allowed to import `conf.py`.
-- `asgi.py` — the ASGI entrypoint.
+- `asgi.py` — the ASGI entrypoint, and what `uvicorn` imports as `root.asgi:application`.
 - `urls.py` — the schema and Swagger UI paths.
 - `__init__.py`.
 
 There is no `wsgi.py`. The MCP transport is Streamable HTTP and the server is async, so WSGI would
 be a second entrypoint nothing starts.
+
+`asgi.py` sets `DJANGO_SETTINGS_MODULE` **before** importing `django.core.asgi`, which is why that
+import carries `# noqa: E402`. It is not cosmetic: `get_asgi_application()` calls `django.setup()`,
+so the variable has to exist by then.
+
+`manage.py runserver` serves WSGI, so it would exercise a stack nothing deploys. `make run` starts
+`uvicorn` instead — the same server, the same entrypoint and the same code path as the systemd
+unit, differing only in `--reload` and the port.
 
 ## The one-way rule
 
@@ -23,6 +31,13 @@ in tests because the value was already captured at import time.
 
 Adding a value: field on `Env` in `conf.py` → key in `.env` → key in `.env.example` → exposed
 through `settings.py` if application code needs it.
+
+**`env_file` is an absolute path built from `BASE_DIR`, not the string `'.env'`.** Relative, it is
+resolved against the working directory, so the process starts only when something happened to
+`cd` into the checkout first — `uv run` from a subdirectory, a cron line without a `cd`, or a unit
+with no `WorkingDirectory` gets no configuration at all, and the failure reads as four missing
+required keys rather than as a missing file. `BASE_DIR` is defined here, once, and `settings.py`
+imports it.
 
 ## Secrets are typed
 

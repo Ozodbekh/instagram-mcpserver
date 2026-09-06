@@ -73,6 +73,11 @@ Generated and ignored paths are out of scope and must not appear:
 `.venv/`, `.idea/`, `__pycache__/`, `.git/`, `.pytest_cache/`, `staticfiles/`, `media/`, `logs/`,
 coverage and build output.
 
+`deploy/` is ignored too, and it is the one entry here that is **hand-written rather than
+generated**: it holds the systemd unit, which names absolute paths and a user for one machine.
+Keeping it out of the repository is a deliberate choice, and it has a cost — the deployed copy is
+then the only copy, and nothing tells you when it drifts from what the project needs.
+
 Two git-ignored paths **are** listed, because a reader of a working checkout needs to know they
 exist: `.env` and `.claude/settings.local.json`. The checker carries the same two as an explicit
 allowlist — anything else that git ignores is invisible to it.
@@ -176,6 +181,7 @@ instagram-mcpserver/
 │   │       └── test_client.py  the request shape, both timeouts, no parse_mode, truncation
 │   ├── root/
 │   │   ├── __init__.py         package marker
+│   │   ├── test_asgi.py        the entrypoint uvicorn imports, driven over real ASGI messages
 │   │   ├── test_conf.py        the secret refuses to be empty, short, defaulted or printed
 │   │   ├── test_cors.py        the allowed origins, the Authorization wildcard, a real preflight
 │   │   ├── test_settings.py    what must stay out of INSTALLED_APPS, and that DRF fails closed

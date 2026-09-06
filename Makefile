@@ -1,11 +1,13 @@
+PORT ?= 8000
+
 .DEFAULT_GOAL := help
 .PHONY: help run shell migrations migrate test clean check
 
 help:  ## list the targets
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:[^#]*## /\t/' | expand -t 12
 
-run:  ## development server
-	uv run manage.py runserver
+run:  ## development server on PORT (default 8000) — the same ASGI server the unit runs
+	uv run uvicorn root.asgi:application --reload --port $(PORT)
 
 shell:  ## django shell
 	uv run manage.py shell

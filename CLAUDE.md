@@ -14,7 +14,8 @@ business account and posts in their name. `docs/rules/security.md` is not advice
 ## Stack
 
 Python 3.14 · Django 6.1 · DRF · `drf-spectacular` · `django-cors-headers` · `requests` ·
-PostgreSQL (`psycopg`, pooled) · `pydantic-settings` · `uv` · `pytest` + `pytest-django`.
+`uvicorn` · PostgreSQL (`psycopg`, pooled) · `pydantic-settings` · `uv` ·
+`pytest` + `pytest-django`.
 
 Not installed — do not import them: Celery, Redis, Channels, GraphQL, `django-filter`,
 `celery-beat`, ruff. `fastmcp` and an HTTP client arrive with the MCP server and the Graph API
@@ -31,6 +32,9 @@ no such client — see `docs/rules/api-drf.md`.
 
 `make help` lists them. `make check` is the gate before every commit: Django checks, no missing
 migration, the tests, then `scripts/check-docs.sh`.
+
+`make run` starts `uvicorn` on the ASGI entrypoint, not `runserver` — which serves WSGI and would
+exercise a stack nothing deploys. `PORT=8005 make run` matches the systemd unit.
 
 Not routine, so no target: `uv run manage.py startapp <name> src/<name>`, `uv add <name>`.
 
