@@ -102,7 +102,8 @@ instagram-mcpserver/
 ├── Makefile                    the commands, and `make check` — the gate before a commit
 ├── docs/
 │   ├── api/
-│   │   └── README.md           the error contract, the map, and where to start
+│   │   ├── README.md           the error contract, the map, and where to start
+│   │   └── webhooks.md         Meta's two calls: the verify challenge and the signed delivery
 │   ├── rules/
 │   │   ├── README.md           index — which rule loads when, and what is deliberately absent
 │   │   ├── api-docs.md         how to write the API .md handed to a caller
@@ -120,6 +121,7 @@ instagram-mcpserver/
 │   │   ├── services.md         services and selectors, and why both surfaces share them
 │   │   ├── structure.md        this file
 │   │   └── testing.md          pytest, what every endpoint and every tool must cover
+│   ├── security-debt.md        every known gap against security.md, and what closes each
 │   └── structure-decisions.md  running log of structure decisions, and what is still open
 ├── manage.py                   Django CLI
 ├── pyproject.toml              project metadata, dependencies and pytest configuration
@@ -135,15 +137,54 @@ instagram-mcpserver/
 │   ├── claude-hook.sh          Claude Code hooks — nudge on a stale CLAUDE.md, gate on a red check
 │   └── clean-pycache.sh        remove every __pycache__ outside .venv
 ├── src/
-│   └── __init__.py             package marker; every app will live under this name
-└── tests/
-    ├── CLAUDE.md               the suite: what is pinned, what must be running
-    ├── __init__.py             package marker
-    └── root/
-        ├── __init__.py         package marker
-        ├── test_conf.py        the secret refuses to be empty, short, defaulted or printed
-        ├── test_cors.py        the allowed origins, the Authorization wildcard, a real preflight
-        ├── test_settings.py    what must stay out of INSTALLED_APPS, and that DRF fails closed
-        └── test_urls.py        the schema and Swagger UI are routed under DEBUG and nowhere else
+│   ├── CLAUDE.md               what is a Django app here and what is not
+│   ├── __init__.py             package marker; every app lives under this name
+│   ├── common/
+│   │   ├── CLAUDE.md           why the shared package exists before a second caller does
+│   │   ├── __init__.py         package marker
+│   │   ├── constants.py        the codes the exception handler emits by itself
+│   │   └── exceptions.py       DomainError and the handler that turns every failure into a code
+│   ├── integrations/
+│   │   ├── CLAUDE.md           the outbound boundary, and why there is no base/ yet
+│   │   ├── __init__.py         package marker; not a Django app
+│   │   └── telegram/
+│   │       ├── CLAUDE.md       the debug forwarder: no parse_mode, no retry, fails closed
+│   │       ├── __init__.py     package marker
+│   │       ├── client.py       sendMessage over requests, two timeouts, no retry
+│   │       ├── constants.py    the API base, the timeouts, Telegram's message limit
+│   │       └── exceptions.py   our own failures; no requests exception escapes the boundary
+│   ├── urls.py                 the one module root/urls.py includes: a prefix per app
+│   └── webhooks/
+│       ├── CLAUDE.md           what Instagram sends, the two verifications, why nothing is stored
+│       ├── __init__.py         package marker
+│       ├── constants.py        the hub parameters, the signature header, the error codes
+│       ├── formatting.py       one readable message per event in a delivery
+│       ├── services.py         forward a delivery, and stop at the first Telegram failure
+│       ├── signature.py        the HMAC over the raw body, and the verify-token comparison
+│       ├── urls.py             one path, no api/ prefix — the collector owns it
+│       └── views.py            reads request.body before anything parses it
+├── tests/
+│   ├── CLAUDE.md               the suite: what is pinned, what must be running
+│   ├── __init__.py             package marker
+│   ├── common/
+│   │   ├── __init__.py         package marker
+│   │   └── test_exceptions.py  every failure maps to a code, and no sentence survives
+│   ├── integrations/
+│   │   ├── __init__.py         package marker
+│   │   └── telegram/
+│   │       ├── __init__.py     package marker
+│   │       └── test_client.py  the request shape, both timeouts, no parse_mode, truncation
+│   ├── root/
+│   │   ├── __init__.py         package marker
+│   │   ├── test_conf.py        the secret refuses to be empty, short, defaulted or printed
+│   │   ├── test_cors.py        the allowed origins, the Authorization wildcard, a real preflight
+│   │   ├── test_settings.py    what must stay out of INSTALLED_APPS, and that DRF fails closed
+│   │   └── test_urls.py        the schema and Swagger UI are routed under DEBUG and nowhere else
+│   └── webhooks/
+│       ├── __init__.py         package marker
+│       ├── conftest.py         the signed-payload builder, and the fixture that blocks the network
+│       ├── test_delivery.py    signature, redelivery, forwarding, and why Meta always gets a 200
+│       ├── test_formatting.py  one message per event, comments and direct messages alike
+│       └── test_verification.py  the challenge Meta expects back, and what refuses it
 └── uv.lock                     the resolved versions; the only thing that pins one
 ```

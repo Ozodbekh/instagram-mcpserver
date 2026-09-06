@@ -10,14 +10,16 @@ second copy would drift from the first.
 
 ```
 uv run pytest
-uv run pytest tests/root
-uv run pytest -k secret
+uv run pytest tests/webhooks
+uv run pytest -k signature
+uv run pytest tests/root tests/common tests/integrations   everything that needs no database
 ```
 
-No test touches the database yet, so the suite is offline and takes well under a second.
+**Nothing has to be running.** No test touches the database, because nothing under `src/` has a
+model — the whole suite is offline and finishes in well under a second.
 
-**The first one that does needs PostgreSQL running.** `pytest-django` creates and drops
-`test_<POSTGRES_DB>`, so the role in `.env` needs `CREATEDB`:
+The first test that does need one will need PostgreSQL up, and the role in `.env` will need
+`CREATEDB`, because `pytest-django` creates and drops `test_<POSTGRES_DB>`:
 
 ```
 sudo -u postgres psql -c "ALTER USER <POSTGRES_USER> CREATEDB;"
@@ -33,45 +35,50 @@ the API has no versions — `docs/rules/api-drf.md`.
 
 ```
 tests/
-└── root/                   environment parsing, the settings that must stay absent, the two schema paths
+├── common/                 the error envelope, exception by exception
+├── integrations/telegram/  the Bot API client, requests mocked
+├── root/                   environment parsing, the settings that must stay absent, CORS, the schema paths
+└── webhooks/               Meta's two calls: verification, signature, replay, forwarding
 ```
 
-No `conftest.py` yet. It arrives with the first fixture two files share.
+No root `conftest.py` yet. `tests/webhooks/conftest.py` holds the signed-payload builder and two
+autouse fixtures: one sets the app secret, verify token and Telegram configuration, the other
+patches `message_send` so **no test can reach the network even by mistake**.
 
 ## What is pinned here
 
 - **`SECRET_KEY` refuses to be empty or short.** A required `SecretStr` alone is not enough:
   `SECRET_KEY=` in the environment satisfies "required" with an empty string. The length floor in
-  `root/conf.py` is what makes it fail closed, and the parametrized test is what keeps the floor
-  from being dropped as an inconvenience.
+  `root/conf.py` is what makes it fail closed.
 - **Every required key is missing rather than defaulted.** The test is parametrized over the set,
-  so a key added to `Env` with a convenient default fails here instead of shipping — which is the
-  whole mechanism behind "no secret in code".
-- **No secret appears in `repr(env)`.** That is the property keeping it out of a traceback, and it
-  is `SecretStr`'s rather than our discipline — so it is tested, not assumed.
-- **What must stay out of `INSTALLED_APPS`** — admin, sessions, staticfiles. Each was removed for a
-  stated reason in `root/CLAUDE.md`, and each is the kind of line a future `startapp` or a
-  copy-pasted settings block puts back.
-- **`CommonMiddleware` stays out**, and a slashless path answers `404` rather than a redirect. That
-  is the observable half of the same decision: `APPEND_SLASH` answers a slashless `POST` with a
-  `301` that drops the body.
-- **`TEMPLATES` stays empty of everything but `APP_DIRS`.** It exists for `drf-spectacular` and
-  nothing else, and the test is what says so to whoever wants to add a `DIRS` entry.
-- **JSON is the only renderer and parser**, so DRF cannot render its browsable HTML page at all.
+  so a key added to `Env` with a convenient default fails here instead of shipping.
+- **No secret appears in `repr(env)`.** That is `SecretStr`'s property rather than our discipline —
+  so it is tested, not assumed.
+- **What must stay out of `INSTALLED_APPS`** — admin, sessions, staticfiles — and that
+  `CommonMiddleware` stays out, so a slashless path answers `404` rather than a body-dropping
+  redirect.
 - **DRF fails closed.** `DEFAULT_PERMISSION_CLASSES` is `IsAuthenticated` and
-  `DEFAULT_AUTHENTICATION_CLASSES` is empty, asserted against `api_settings` rather than against
-  our own dict — so the test proves the override actually reached DRF. It names
-  `BasicAuthentication` explicitly, because that is the one DRF enables by default and the one
+  `DEFAULT_AUTHENTICATION_CLASSES` is empty, asserted against `api_settings` rather than our own
+  dict. `BasicAuthentication` is named explicitly: it is the one DRF enables by default and the one
   that would accept a password on every view.
-- **CORS, including a real preflight.** `test_cors.py` sends an `OPTIONS` with `Origin` and
-  `Access-Control-Request-Method` and reads the response headers, because the settings assertions
-  alone would not catch a middleware in the wrong position. It pins `authorization` beside the `*`
-  in `CORS_ALLOW_HEADERS`: the Fetch specification excludes `Authorization` from the wildcard, and
-  that failure appears only in a browser — no test client would ever reproduce it.
-- **The schema and Swagger UI exist only under `DEBUG`.** `test_urls.py` reloads the URL conf under
-  each flag and compares the routed patterns, then drives the real client through both. A
-  permission cannot express this — `drf-spectacular` serves those views with its own `AllowAny` —
-  so the routing is what is tested.
+- **CORS, including a real preflight**, and `authorization` beside the `*` in `CORS_ALLOW_HEADERS` —
+  the Fetch specification excludes `Authorization` from the wildcard, and that failure appears only
+  in a browser.
+- **The schema and Swagger UI exist only under `DEBUG`**, tested by reloading the URL conf under
+  each flag. A permission cannot express this — `drf-spectacular` serves them with its own
+  `AllowAny`.
+- **The webhook signature covers bytes, not the parsed body.** One test signs a re-serialised copy
+  of the same object and asserts the delivery is refused. That is the mistake the rule exists for,
+  and every other test would pass with it made.
+- **An empty app secret or verify token refuses everything**, rather than matching an empty one.
+- **A redelivery is forwarded again.** The test asserts the duplicate rather than preventing it, so
+  the absence of idempotency is a decision on record instead of an oversight — see
+  `src/webhooks/CLAUDE.md`.
+- **A Telegram failure still answers Meta `200`, and stops the rest of the delivery.** The first
+  is so Meta does not redeliver what Telegram already refused; the second is so an unreachable
+  Telegram costs one timeout inside Meta's request, not one per event.
+- **`message_send` never sends `parse_mode`.** The text is a stranger's comment; a formatting flag
+  turns it into markup somebody else chose.
 
 ## Notes
 

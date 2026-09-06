@@ -59,7 +59,9 @@ emptiness check before it is compared.
 ## Current state
 
 - `INSTALLED_APPS`: Django's `auth` and `contenttypes`, then `corsheaders`, `rest_framework` and
-  `drf_spectacular`. No app under `src/` exists yet.
+  `drf_spectacular`. **Nothing under `src/` is there**, because nothing under `src/` has a model
+  yet — see `src/CLAUDE.md`. `EXCEPTION_HANDLER` still reaches `src.common.exceptions` because
+  Django imports the dotted path rather than looking it up in the app registry.
 - `MIDDLEWARE` holds `CorsMiddleware` and then `SecurityMiddleware`. **CORS is first on purpose**:
   it has to reach a response that another middleware generated and returned early — a
   `SECURE_SSL_REDIRECT`, a `400` from host validation — or the browser reports a CORS failure
@@ -86,18 +88,28 @@ emptiness check before it is compared.
   HTML page at all. `UNAUTHENTICATED_USER` is `None` because there is no `AuthenticationMiddleware`.
   The empty authentication list and that line are both revisited in the change that adds real
   authentication — `security.md` still requires every view to declare its own permissions.
+  `EXCEPTION_HANDLER` is `src.common.exceptions.coded_exception_handler`, so every failure answers
+  `{"code": ...}` and no DRF sentence reaches a caller — see `src/common/CLAUDE.md`.
 - `SPECTACULAR_SETTINGS`: the schema is generated, never hand-written. `SERVE_INCLUDE_SCHEMA` is
   off so the schema endpoint does not describe itself.
-- `urls.py` routes `/api/schema/` and `/api/docs/` **only when `DEBUG`**, and nothing else. No
-  product path exists yet, so with `DEBUG` off the URL conf is empty and every path is `404`.
+- `urls.py` includes **one** module, `src/urls.py`, and adds `/api/schema/` and `/api/docs/`
+  **only when `DEBUG`**. Adding an app changes nothing here.
   The gate is on the route, not on a permission: `drf-spectacular` serves both views with
   `AllowAny` (`SERVE_PERMISSIONS`) whatever the DRF default is, so not routing them is the only
   thing that closes them.
 - `conf.py` carries `SECRET_KEY` (`SecretStr`, at least 32 characters), `DEBUG`, `ALLOWED_HOSTS`
   (comma-separated, read through the `allowed_hosts` property), and the five `POSTGRES_*` keys.
   `POSTGRES_PASSWORD` is a `SecretStr` with no default, so the key must be present even when the
-  value is empty for a locally trusted connection. Instagram credentials, the Graph API version and
-  the MCP signing key are added when the code that reads them is written — not before.
+  value is empty for a locally trusted connection.
+- `INSTAGRAM_APP_SECRET` and `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` are `SecretStr` and **default to
+  empty on purpose**: the project starts without them and the webhook refuses every request until
+  they are set. A required field would stop the whole service over one endpoint, and an empty
+  secret that silently matched would be worse than either — `src/webhooks/CLAUDE.md`.
+- `TELEGRAM_BOT_TOKEN` (`SecretStr`) and `TELEGRAM_DEBUG_CHAT_ID` reach the delivery forwarder.
+  Either one empty refuses to send rather than guessing a destination. The forwarder is a
+  development aid with an entry in `docs/security-debt.md`.
+- The Graph API version, the Instagram app id and the MCP signing key are added when the code that
+  reads them is written — not before.
 
 ## Notes
 

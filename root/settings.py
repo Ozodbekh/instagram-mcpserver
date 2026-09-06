@@ -60,6 +60,14 @@ USE_I18N = False
 
 USE_TZ = True
 
+INSTAGRAM_APP_SECRET = env.INSTAGRAM_APP_SECRET.get_secret_value()
+
+INSTAGRAM_WEBHOOK_VERIFY_TOKEN = env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN.get_secret_value()
+
+TELEGRAM_BOT_TOKEN = env.TELEGRAM_BOT_TOKEN.get_secret_value()
+
+TELEGRAM_DEBUG_CHAT_ID = env.TELEGRAM_DEBUG_CHAT_ID
+
 CORS_URLS_REGEX = r'^/api/.*$'
 
 CORS_ALLOWED_ORIGINS = env.cors_allowed_origins
@@ -80,6 +88,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'src.common.exceptions.coded_exception_handler',
     'UNAUTHENTICATED_USER': None,
 }
 

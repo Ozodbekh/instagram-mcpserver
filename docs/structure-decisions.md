@@ -89,9 +89,13 @@ changes when it is.
 
 ### Background work
 
-There is none, and Celery is not installed. That is a gap, not a decision — three things this
-project needs are background work by nature:
+There is none, and Celery is not installed. That is a gap, not a decision, and the webhook
+forwarder is already paying for it: it calls Telegram inside the request Meta is waiting on, which
+`docs/rules/integrations.md` forbids and `src/webhooks/CLAUDE.md` records as a deviation.
 
+Four things this project needs are background work by nature:
+
+- **Forwarding or handling a webhook delivery**, so Meta is answered before the work starts.
 - **Token refresh**, on a schedule, before expiry rather than after a failure.
 - **Publishing**, which is create-a-container, poll it, publish it — never inside a request.
 - **Syncing** media and insights, page by page, inside Meta's rate limits.
@@ -110,11 +114,17 @@ agreed: encrypted at rest or not, and with which key.
 `docs/security-debt.md` saying it is absent and what would add it. The app that first stores a
 token writes whichever is true.
 
-### `src/common/`
+### `src/common/` arrived with the first app, not the second
 
-Does not exist. It arrives with the **second** app that needs a shared piece, not the first —
-`docs/rules/core.md`, DRY against YAGNI. What it is expected to hold when it does: `models.py`
-(`TimeStampedModel`, `UUIDModel`, `SoftDeleteMixin`), `exceptions.py` (the DRF exception handler),
-`pagination.py`, `scope.py`, `constants.py`.
+**Decided**, against the DRY-versus-YAGNI rule that would have waited for a second caller.
 
-Naming it now would be a directory with one file in it, imported from one place.
+The error envelope is the exception, and only it: `docs/api/README.md` publishes `{"code": ...}` as
+what every endpoint answers in, so it is a project contract rather than an app's choice. Wired
+globally as `EXCEPTION_HANDLER` from the first endpoint, nothing has to migrate later; added at the
+second app, it would change the shape of every existing endpoint on one deploy.
+
+It is **not** in `INSTALLED_APPS`. Django imports the handler by dotted path, so installing a
+package with no models buys nothing.
+
+`models.py` (`TimeStampedModel`, `UUIDModel`, `SoftDeleteMixin`), `pagination.py` and `scope.py`
+still wait for a second caller. The package existing is not permission to fill it.

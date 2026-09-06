@@ -1,8 +1,10 @@
 from django.conf import settings
-from django.urls import path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-urlpatterns = []
+urlpatterns = [
+    path('', include('src.urls')),
+]
 
 if settings.DEBUG:
     urlpatterns += [

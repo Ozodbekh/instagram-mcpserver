@@ -6,9 +6,11 @@ dependencies = [
     "django>=6.1.1",
     "django-cors-headers>=4.9.0",
     "djangorestframework>=3.18.0",
+    "djangorestframework-stubs>=3.18.1",
     "drf-spectacular>=0.30.0",
     "psycopg[binary,pool]>=3.3.5",
     "pydantic-settings>=2.15.0",
+    "requests>=2.34.2",
 ]
 
 [dependency-groups]

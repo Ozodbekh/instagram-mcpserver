@@ -1,7 +1,7 @@
 ---
 paths:
   - "src/integrations/instagram/**"
-  - "src/**/webhooks.py"
+  - "src/webhooks/**"
 ---
 
 # Instagram Graph API

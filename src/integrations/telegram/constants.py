@@ -1,0 +1,9 @@
+API_BASE_URL = 'https://api.telegram.org'
+
+SEND_MESSAGE_PATH = '/bot{token}/sendMessage'
+
+CONNECT_TIMEOUT_SECONDS = 3.05
+READ_TIMEOUT_SECONDS = 10.0
+
+MESSAGE_MAX_LENGTH = 4096
+TRUNCATION_MARKER = '\n… truncated'

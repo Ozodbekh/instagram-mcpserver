@@ -13,7 +13,7 @@ business account and posts in their name. `docs/rules/security.md` is not advice
 
 ## Stack
 
-Python 3.14 · Django 6.1 · DRF · `drf-spectacular` · `django-cors-headers` ·
+Python 3.14 · Django 6.1 · DRF · `drf-spectacular` · `django-cors-headers` · `requests` ·
 PostgreSQL (`psycopg`, pooled) · `pydantic-settings` · `uv` · `pytest` + `pytest-django`.
 
 Not installed — do not import them: Celery, Redis, Channels, GraphQL, `django-filter`,

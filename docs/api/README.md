@@ -30,7 +30,7 @@ The entries under `errors` are codes too: `required`, `invalid`, `blank`, `max_l
 | Status | `code` | Meaning |
 |---|---|---|
 | `400` | `validation_error` | The body failed validation. `errors` names the fields. |
-| `400` | `bad_request` | The request could not be parsed. |
+| `400` | `parse_error` | The request could not be parsed. |
 | `401` | `not_authenticated` | No token, an expired token or a wrong one — deliberately indistinguishable. |
 | `403` | `permission_denied` | Authenticated, but not allowed. |
 | `404` | `not_found` | No such object, or not one this account may see. |
@@ -71,7 +71,7 @@ the page here first and then read it.
 
 | Path | Page |
 |---|---|
-| — | no product endpoint exists yet |
+| `webhooks/instagram/` | `webhooks.md` — Meta calls it; no client of ours does |
 
 `/api/schema/` and `/api/docs/` are the generated schema and Swagger UI. They are not product
 endpoints and have no page, and **they are served only when `DEBUG` is on** — in any deployed
@@ -80,4 +80,5 @@ environment both answer `404`. Read the schema from a development instance, or g
 
 ## Where to start
 
-Nothing to call yet. The first app to land adds its row above and its page beside this file.
+Nothing for a client to call yet. The only path that exists is Meta's, and it is on the map above
+so that nobody looks for it in the schema — it is deliberately absent from there.

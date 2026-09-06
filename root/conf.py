@@ -19,6 +19,12 @@ class Env(BaseSettings):
 
     CORS_ALLOWED_ORIGINS: str = ''
 
+    INSTAGRAM_APP_SECRET: SecretStr = SecretStr('')
+    INSTAGRAM_WEBHOOK_VERIFY_TOKEN: SecretStr = SecretStr('')
+
+    TELEGRAM_BOT_TOKEN: SecretStr = SecretStr('')
+    TELEGRAM_DEBUG_CHAT_ID: str = ''
+
     @property
     def allowed_hosts(self):
         return self._split(self.ALLOWED_HOSTS)
