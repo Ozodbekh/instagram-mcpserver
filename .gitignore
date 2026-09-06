@@ -18,6 +18,8 @@ htmlcov/
 
 deploy/
 
+img*.png
+
 .idea/
 .vscode/
 .DS_Store

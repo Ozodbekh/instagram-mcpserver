@@ -38,6 +38,27 @@ When the first app lands, it gains one `include` of a single collector under `sr
 collector names the apps. No app's own url module carries the `api/` prefix, so changing the prefix
 stays a one-line edit and adding an app never touches `root/`.
 
+### `public/` is served by nginx, not by Django
+
+**Decided.** Meta will not publish an app without a reachable privacy policy URL, so one static
+page has to exist. `public/privacy.html` is that page, and the TLS terminator already in front of
+`uvicorn` serves it directly:
+
+```
+location = /privacy/ {
+    alias /home/citizen/ms_holding/instagram-mcpserver/public/privacy.html;
+}
+```
+
+The root `CLAUDE.md` says no server-rendered HTML, and that rule stands: **Django never sees this
+request.** No template engine, no `staticfiles`, no view, no test — a file on disk and a web server
+doing what a web server does. Serving it from Django would have meant a `render()` or an
+`HttpResponse` full of markup, which is the thing the rule is about.
+
+It is committed, unlike `deploy/`, because it is content rather than one machine's configuration:
+it names no path and no user, and the deployed copy going stale is exactly what must not happen to
+a published policy.
+
 ### The MCP server is `src/mcp_server/`, in its own process
 
 Never `src/mcp/` — a top-level `mcp/` package shadows the installed `mcp` SDK that `fastmcp` is

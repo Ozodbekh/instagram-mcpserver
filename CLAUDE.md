@@ -4,6 +4,9 @@ A backend that connects Instagram professional accounts and exposes a controlled
 AI agents over the Model Context Protocol. JSON API: accepts JSON, returns JSON, stateless. No
 Django admin, no templates, no server-rendered HTML.
 
+`public/privacy.html` is not an exception to that: it is a static file the TLS terminator serves,
+and no request for it reaches Django — `docs/structure-decisions.md`.
+
 **Two surfaces over one set of services.** The REST API and the MCP tools are two doors into
 `services.py` / `selectors.py`, and neither may know something the other does not. That is the
 whole architecture; everything below protects it.

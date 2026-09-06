@@ -73,6 +73,10 @@ Generated and ignored paths are out of scope and must not appear:
 `.venv/`, `.idea/`, `__pycache__/`, `.git/`, `.pytest_cache/`, `staticfiles/`, `media/`, `logs/`,
 coverage and build output.
 
+`img*.png` is ignored because the IDE writes a pasted screenshot to the project root under that
+name. This project serves no images and has no static files, so one in the tree is always a paste
+artefact.
+
 `deploy/` is ignored too, and it is the one entry here that is **hand-written rather than
 generated**: it holds the systemd unit, which names absolute paths and a user for one machine.
 Keeping it out of the repository is a deliberate choice, and it has a cost — the deployed copy is
@@ -129,6 +133,8 @@ instagram-mcpserver/
 │   ├── security-debt.md        every known gap against security.md, and what closes each
 │   └── structure-decisions.md  running log of structure decisions, and what is still open
 ├── manage.py                   Django CLI
+├── public/
+│   └── privacy.html            the policy Meta requires; nginx serves it, Django never sees it
 ├── pyproject.toml              project metadata, dependencies and pytest configuration
 ├── root/
 │   ├── CLAUDE.md               configuration: env layering, what is absent and why
