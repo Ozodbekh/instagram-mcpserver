@@ -37,8 +37,24 @@ live where each entry points — this file exists so nothing is forgotten, not t
    **What closes it:** the first handler with a real side effect. Idempotency arrives with it, keyed
    on whatever that handler actually needs rather than on the whole body.
 
-## Not yet decided
+## Accepted because the provider leaves no alternative
 
-4. **Access tokens are not stored at all yet, so nothing is encrypted at rest.**
-   `security.md` requires encryption or an entry here. This is the entry, and it stands until the
-   first app stores a token — `docs/structure-decisions.md` keeps the question open.
+4. **The access token travels in the query string on both token calls.** `instagram.md` forbids it,
+   and it is right: a URL is logged by every proxy on the path, and by Meta. Their
+   `/access_token` and `/refresh_access_token` endpoints accept no `Authorization` header, so
+   there is no version of these two calls that obeys the rule.
+
+   **What bounds it:** the call is HTTPS, so the URL is not on the wire in clear; nothing in
+   `src/integrations/instagram/` logs a URL, and a test asserts the token appears in no log
+   record. It applies to these two endpoints only — every other Graph API call takes the header,
+   and must use it.
+
+## Partly closed
+
+5. **Access tokens are encrypted at rest, with the key beside the database credentials.**
+   `src/accounts/fields.py` encrypts the column with Fernet, so a database dump, a stolen backup or
+   a read-only SQL leak hands over ciphertext. `INSTAGRAM_TOKEN_ENCRYPTION_KEY` lives in `.env` on
+   the same host, so this does **not** defend against an attacker who already has the server.
+
+   **What would close it:** a key held somewhere the application server is not — a KMS, or an
+   operator-supplied key at start-up. Neither is worth it before there is more than one account.

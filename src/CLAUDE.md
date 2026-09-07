@@ -2,11 +2,12 @@
 
 All application code. Configuration is in `root/`, tests in `tests/`.
 
-The name is `src` and not `apps` because **nothing here is a Django app yet**: nothing stores
-anything, so nothing has models, migrations or a place in `INSTALLED_APPS`.
+The name is `src` and not `apps` because not everything here is a Django app: `integrations/`
+carries calls out and `webhooks/` carries them in, and neither stores anything.
 
 ## What is here
 
+- `accounts/` — connected Instagram accounts and their tokens. The only Django app
 - `common/` — shared building blocks that belong to no domain
 - `integrations/` — outbound clients. Every third party is reached from here and nowhere else
 - `webhooks/` — inbound callbacks from Meta
@@ -27,13 +28,14 @@ A mechanical test:
 | may touch `Model.objects` | yes | **never** — calls `selectors` / `services` |
 | created by | `startapp` | a hand-made package |
 
-All three directories are on the right-hand column today. `integrations/` carries a call out and
-decides nothing; `webhooks/` verifies what arrived and forwards it; `common/` holds the error
-envelope. None of them persists a row, so none of them is installed.
+`accounts/` is the only one on the left: a token has to survive a restart and be replaced every
+sixty days, so it is a row. The other three persist nothing — `integrations/` carries a call out,
+`webhooks/` verifies what arrived and forwards it, `common/` holds the error envelope — so none of
+them is installed.
 
-**That is the test doing its job, not a gap.** `webhooks/` was written with a model first — a table
-keyed on a hash of the request body, so a redelivery would be recognised — and the model was
-removed because the only consequence of a redelivery is a duplicate debug message, while the table
+**The test is what decides, and it has already changed one answer.** `webhooks/` was written with a
+model first, keyed on a hash of the request body so a redelivery would be recognised, and the model
+was removed: the only consequence of a redelivery is a duplicate debug message, while the table
 would have stored every stranger's direct message forever. `src/webhooks/CLAUDE.md` records that,
 and `docs/security-debt.md` entry 3 says what brings idempotency back.
 

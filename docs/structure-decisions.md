@@ -60,10 +60,13 @@ The consequence that matters is that the client stores nothing. A token belongs 
 model, because a client that keeps its own copy becomes the second place tokens live, and the two
 diverge on the first refresh.
 
-Which of Meta's two Instagram APIs this project uses — Instagram Login or Facebook Login — is
-**not yet decided**. It is the first thing to settle, it changes permission names, id spaces and
-endpoints, and `src/integrations/instagram/CLAUDE.md` records the answer on the day the directory
-is created.
+**Instagram API with Instagram Login, on `graph.instagram.com`.** Decided: it needs no Facebook
+Page, which is the difference between an account owner signing in and an account owner first
+creating and linking a Page. It covers publishing, insights, comments and messaging — everything
+this project is for.
+
+The price is the token. It expires in 60 days and refreshing it is our problem, where a Facebook
+Page access token does not expire. `src/accounts/` is that price, and it is one cron entry.
 
 ### PostgreSQL, pooled, `CONN_MAX_AGE = 0`
 
@@ -107,12 +110,14 @@ because a rule for machinery nobody runs reads as fact.
 
 ### Where a token lives
 
-Agreed that it belongs to a domain app's model and never to the integration package. Not yet
-agreed: encrypted at rest or not, and with which key.
+**Decided.** `src/accounts/InstagramAccount`, encrypted at rest with Fernet through a custom model
+field, key from `.env`.
 
-`docs/rules/security.md` requires one or the other — encryption, or an entry in
-`docs/security-debt.md` saying it is absent and what would add it. The app that first stores a
-token writes whichever is true.
+The field rather than an explicit call in the service, because `docs/rules/security.md` asks for
+protection "by construction rather than by discipline" — the same reason every secret in
+`root/conf.py` is a `SecretStr`. Nothing that writes a token can forget to encrypt it.
+
+What that does and does not defend is `docs/security-debt.md` entry 5.
 
 ### `src/common/` arrived with the first app, not the second
 

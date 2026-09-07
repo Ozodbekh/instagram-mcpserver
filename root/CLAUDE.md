@@ -74,9 +74,10 @@ emptiness check before it is compared.
 ## Current state
 
 - `INSTALLED_APPS`: Django's `auth` and `contenttypes`, then `corsheaders`, `rest_framework` and
-  `drf_spectacular`. **Nothing under `src/` is there**, because nothing under `src/` has a model
-  yet — see `src/CLAUDE.md`. `EXCEPTION_HANDLER` still reaches `src.common.exceptions` because
-  Django imports the dotted path rather than looking it up in the app registry.
+  `drf_spectacular`, then `src.accounts`. **Only `src.accounts` is there**, because it is the only
+  package under `src/` with a model — see `src/CLAUDE.md`. `EXCEPTION_HANDLER` still reaches
+  `src.common.exceptions` because Django imports the dotted path rather than looking it up in the
+  app registry.
 - `MIDDLEWARE` holds `CorsMiddleware` and then `SecurityMiddleware`. **CORS is first on purpose**:
   it has to reach a response that another middleware generated and returned early — a
   `SECURE_SSL_REDIRECT`, a `400` from host validation — or the browser reports a CORS failure
@@ -120,6 +121,9 @@ emptiness check before it is compared.
   empty on purpose**: the project starts without them and the webhook refuses every request until
   they are set. A required field would stop the whole service over one endpoint, and an empty
   secret that silently matched would be worse than either — `src/webhooks/CLAUDE.md`.
+- `INSTAGRAM_TOKEN_ENCRYPTION_KEY` is the Fernet key `src/accounts/fields.py` encrypts access
+  tokens with. Empty raises rather than storing plaintext, so a deployment that forgets it cannot
+  quietly write a usable token into the column.
 - `TELEGRAM_BOT_TOKEN` (`SecretStr`) and `TELEGRAM_DEBUG_CHAT_ID` reach the delivery forwarder.
   Either one empty refuses to send rather than guessing a destination. The forwarder is a
   development aid with an entry in `docs/security-debt.md`.

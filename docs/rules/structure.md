@@ -148,6 +148,24 @@ instagram-mcpserver/
 ├── src/
 │   ├── CLAUDE.md               what is a Django app here and what is not
 │   ├── __init__.py             package marker; every app lives under this name
+│   ├── accounts/
+│   │   ├── CLAUDE.md           the 60-day clock, and why the token column is encrypted
+│   │   ├── __init__.py         package marker
+│   │   ├── apps.py             app config
+│   │   ├── constants.py        the refresh window, Meta's 24-hour floor, column widths
+│   │   ├── fields.py           EncryptedTextField: the token is ciphertext by construction
+│   │   ├── management/
+│   │   │   ├── __init__.py     package marker
+│   │   │   └── commands/
+│   │   │       ├── __init__.py                    package marker
+│   │   │       ├── connect_instagram_account.py   the only way a token enters the system
+│   │   │       └── refresh_instagram_tokens.py    the cron job; non-zero exit when one fails
+│   │   ├── migrations/
+│   │   │   ├── 0001_instagram_account.py  the account table and its unique Instagram id
+│   │   │   └── __init__.py     package marker
+│   │   ├── models.py           InstagramAccount: Meta's id, the token, and when it dies
+│   │   ├── selectors.py        the accounts Meta would still accept a refresh for
+│   │   └── services.py         connect, refresh, and disconnect what Meta has refused
 │   ├── common/
 │   │   ├── CLAUDE.md           why the shared package exists before a second caller does
 │   │   ├── __init__.py         package marker
@@ -156,6 +174,12 @@ instagram-mcpserver/
 │   ├── integrations/
 │   │   ├── CLAUDE.md           the outbound boundary, and why there is no base/ yet
 │   │   ├── __init__.py         package marker; not a Django app
+│   │   ├── instagram/
+│   │   │   ├── CLAUDE.md       which of Meta's two APIs this is, and why that one
+│   │   │   ├── __init__.py     package marker
+│   │   │   ├── client.py       exchange and refresh a token; Meta's JSON stops here
+│   │   │   ├── constants.py    the host, the two paths, the grant types, the error codes
+│   │   │   └── exceptions.py   four families, because each one needs a different answer
 │   │   └── telegram/
 │   │       ├── CLAUDE.md       the debug forwarder: no parse_mode, no retry, fails closed
 │   │       ├── __init__.py     package marker
@@ -175,11 +199,21 @@ instagram-mcpserver/
 ├── tests/
 │   ├── CLAUDE.md               the suite: what is pinned, what must be running
 │   ├── __init__.py             package marker
+│   ├── accounts/
+│   │   ├── __init__.py         package marker
+│   │   ├── conftest.py         a stored account, and the client calls it never makes
+│   │   ├── test_commands.py    what the cron job counts, and that a failure exits non-zero
+│   │   ├── test_fields.py      the round trip, and that the column is not the token
+│   │   ├── test_selectors.py   one test per boundary of Meta's refresh window
+│   │   └── test_services.py    connect, refresh, and what disconnects an account
 │   ├── common/
 │   │   ├── __init__.py         package marker
 │   │   └── test_exceptions.py  every failure maps to a code, and no sentence survives
 │   ├── integrations/
 │   │   ├── __init__.py         package marker
+│   │   ├── instagram/
+│   │   │   ├── __init__.py     package marker
+│   │   │   └── test_client.py  the documented request, the error families, no token in a log
 │   │   └── telegram/
 │   │       ├── __init__.py     package marker
 │   │       └── test_client.py  the request shape, both timeouts, no parse_mode, truncation

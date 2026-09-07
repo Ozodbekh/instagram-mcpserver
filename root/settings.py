@@ -13,6 +13,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'drf_spectacular',
+
+    'src.accounts',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +61,8 @@ USE_TZ = True
 INSTAGRAM_APP_SECRET = env.INSTAGRAM_APP_SECRET.get_secret_value()
 
 INSTAGRAM_WEBHOOK_VERIFY_TOKEN = env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN.get_secret_value()
+
+INSTAGRAM_TOKEN_ENCRYPTION_KEY = env.INSTAGRAM_TOKEN_ENCRYPTION_KEY.get_secret_value()
 
 TELEGRAM_BOT_TOKEN = env.TELEGRAM_BOT_TOKEN.get_secret_value()
 

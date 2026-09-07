@@ -3,6 +3,7 @@ name = "instagram-mcpserver"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
+    "cryptography>=50.0.1",
     "django>=6.1.1",
     "django-cors-headers>=4.9.0",
     "djangorestframework>=3.18.0",

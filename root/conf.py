@@ -26,6 +26,8 @@ class Env(BaseSettings):
     INSTAGRAM_APP_SECRET: SecretStr = SecretStr('')
     INSTAGRAM_WEBHOOK_VERIFY_TOKEN: SecretStr = SecretStr('')
 
+    INSTAGRAM_TOKEN_ENCRYPTION_KEY: SecretStr = SecretStr('')
+
     TELEGRAM_BOT_TOKEN: SecretStr = SecretStr('')
     TELEGRAM_DEBUG_CHAT_ID: str = ''
 

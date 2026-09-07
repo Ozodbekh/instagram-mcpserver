@@ -15,11 +15,9 @@ uv run pytest -k signature
 uv run pytest tests/root tests/common tests/integrations   everything that needs no database
 ```
 
-**Nothing has to be running.** No test touches the database, because nothing under `src/` has a
-model — the whole suite is offline and finishes in well under a second.
-
-The first test that does need one will need PostgreSQL up, and the role in `.env` will need
-`CREATEDB`, because `pytest-django` creates and drops `test_<POSTGRES_DB>`:
+**PostgreSQL must be running.** `tests/accounts/` reaches the database; everything else is
+offline. The role in `.env` needs `CREATEDB`, because `pytest-django` creates and drops
+`test_<POSTGRES_DB>`:
 
 ```
 sudo -u postgres psql -c "ALTER USER <POSTGRES_USER> CREATEDB;"
@@ -85,6 +83,18 @@ patches `message_send` so **no test can reach the network even by mistake**.
   was a `500` in production. A fixture nobody observed proves nothing.
 - **A timestamp no calendar can hold costs the time line, not the request.** Parametrized over
   absurd values and wrong types, because a `500` here makes Meta redeliver forever.
+- **The token column holds ciphertext.** `tests/accounts/test_services.py` reads it back with raw
+  SQL rather than through the ORM, because the ORM decrypts and would agree with itself. It is the
+  only test that can tell encryption from a well-named no-op.
+- **An unconfigured encryption key raises instead of storing plaintext**, and the wrong key raises
+  instead of returning rubbish.
+- **Meta's own error sentence never reaches a caller**, asserted against the real message text.
+  Their code is what we switch on, and a test names the four families.
+- **No access token appears in any log record.** `caplog` is checked field by field, not only the
+  formatted message, because `extra` is where an id would be put and a token would be a slip.
+- **The refresh window is the 24-hour floor and the expiry ceiling, as a query.** Five selector
+  tests, one per boundary — those two bounds are Meta's, and getting either wrong is an account
+  that silently dies at day 60.
 - **A redelivery is forwarded again.** The test asserts the duplicate rather than preventing it, so
   the absence of idempotency is a decision on record instead of an oversight — see
   `src/webhooks/CLAUDE.md`.
