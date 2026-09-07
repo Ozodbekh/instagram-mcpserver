@@ -133,8 +133,6 @@ instagram-mcpserver/
 │   ├── security-debt.md        every known gap against security.md, and what closes each
 │   └── structure-decisions.md  running log of structure decisions, and what is still open
 ├── manage.py                   Django CLI
-├── public/
-│   └── privacy.html            the policy Meta requires; nginx serves it, Django never sees it
 ├── pyproject.toml              project metadata, dependencies and pytest configuration
 ├── root/
 │   ├── CLAUDE.md               configuration: env layering, what is absent and why
