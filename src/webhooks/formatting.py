@@ -6,25 +6,27 @@ from src.webhooks.constants import (
     ENTRY_KEY,
     MESSAGING_EVENT,
     MESSAGING_KEY,
+    MILLISECOND_THRESHOLD,
+    MILLISECONDS_PER_SECOND,
     UNKNOWN_EVENT,
 )
 
 
 def delivery_messages(payload: dict) -> list[str]:
+    entries = payload.get(ENTRY_KEY)
+
+    if not isinstance(entries, list) or not entries:
+        return [_message(kind=UNKNOWN_EVENT, entry={}, body=payload)]
+
     messages = []
 
-    for entry in payload.get(ENTRY_KEY, []):
+    for entry in entries:
         if not isinstance(entry, dict):
             messages.append(_message(kind=UNKNOWN_EVENT, entry={}, body=entry))
             continue
 
-        events = _events(entry)
-
-        for kind, body in events:
+        for kind, body in _events(entry):
             messages.append(_message(kind=kind, entry=entry, body=body))
-
-    if not messages:
-        messages.append(_message(kind=UNKNOWN_EVENT, entry={}, body=payload))
 
     return messages
 
@@ -32,15 +34,18 @@ def delivery_messages(payload: dict) -> list[str]:
 def _events(entry):
     events = [
         (change.get('field', UNKNOWN_EVENT), change.get('value', change))
-        for change in entry.get(CHANGES_KEY, [])
+        for change in _listed(entry, CHANGES_KEY)
         if isinstance(change, dict)
     ]
-    events += [(MESSAGING_EVENT, item) for item in entry.get(MESSAGING_KEY, [])]
+    events += [(MESSAGING_EVENT, item) for item in _listed(entry, MESSAGING_KEY)]
 
-    if events:
-        return events
+    return events or [(UNKNOWN_EVENT, entry)]
 
-    return [(UNKNOWN_EVENT, entry)]
+
+def _listed(entry, key):
+    items = entry.get(key)
+
+    return items if isinstance(items, list) else []
 
 
 def _message(*, kind, entry, body):
@@ -58,7 +63,13 @@ def _message(*, kind, entry, body):
 
 
 def _moment(timestamp):
-    if not isinstance(timestamp, int):
+    if not isinstance(timestamp, int) or isinstance(timestamp, bool):
         return ''
 
-    return datetime.fromtimestamp(timestamp, UTC).isoformat()
+    if abs(timestamp) >= MILLISECOND_THRESHOLD:
+        timestamp = timestamp / MILLISECONDS_PER_SECOND
+
+    try:
+        return datetime.fromtimestamp(timestamp, UTC).isoformat()
+    except (OSError, OverflowError, ValueError):
+        return ''

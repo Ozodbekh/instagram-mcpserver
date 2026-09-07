@@ -79,6 +79,12 @@ patches `message_send` so **no test can reach the network even by mistake**.
   of the same object and asserts the delivery is refused. That is the mistake the rule exists for,
   and every other test would pass with it made.
 - **An empty app secret or verify token refuses everything**, rather than matching an empty one.
+- **`entry.time` is milliseconds for a direct message and seconds for a comment.** The fixture in
+  `tests/webhooks/conftest.py` carries a real millisecond value, because the invented one that
+  preceded it made the suite agree with an assumption that was wrong — comments passed, every DM
+  was a `500` in production. A fixture nobody observed proves nothing.
+- **A timestamp no calendar can hold costs the time line, not the request.** Parametrized over
+  absurd values and wrong types, because a `500` here makes Meta redeliver forever.
 - **A redelivery is forwarded again.** The test asserts the duplicate rather than preventing it, so
   the absence of idempotency is a decision on record instead of an oversight — see
   `src/webhooks/CLAUDE.md`.

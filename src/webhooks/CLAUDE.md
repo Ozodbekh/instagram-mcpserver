@@ -23,6 +23,13 @@ Two shapes arrive on the same path, and nothing in the payload announces which:
 `formatting.delivery_messages` walks both and falls back to forwarding the entry whole when it
 recognises neither, because an unrecognised event is the one worth seeing.
 
+**`entry.time` is in seconds under `changes` and in milliseconds under `messaging`.** That is
+Meta's inconsistency, not ours, and it is invisible until a real direct message arrives: read as
+seconds, a millisecond timestamp is the year 58654 and `datetime.fromtimestamp` raises. It cost a
+`500` on every DM in production while comments kept working, which is exactly the shape a
+unit mismatch takes. `_moment` switches on magnitude — past `MILLISECOND_THRESHOLD` no real event
+time is in seconds.
+
 Which fields arrive at all is a subscription setting in the Meta app dashboard, not something this
 code controls.
 
@@ -56,6 +63,19 @@ forever, in the one place `docs/rules/security.md` says such text must not accum
 
 The rule comes back the moment a handler does something a duplicate would break — a reply, a
 counter, a state change. It has no such side effect today.
+
+## Formatting never raises
+
+Every value in the payload is a stranger's, and `docs/rules/security.md` calls that hostile. Here
+that is not about injection but about **shape**: a list where an object was expected, a string
+where a number was, a timestamp no calendar can hold. Each of those used to be a `500`, and a `500`
+is worse than a wrong message — Meta redelivers on it, so one malformed field becomes a retry storm
+and the payload is never seen at all, because nothing is stored.
+
+So `delivery_messages` guards the shape at every branch and `_moment` returns `''` rather than
+raising. There is deliberately **no blanket `except`** around the forward: the guards sit where
+untrusted input is read, which is where they belong, and a genuine bug in our own code still
+surfaces instead of being swallowed.
 
 ## Meta is answered `200` whatever happens next
 
